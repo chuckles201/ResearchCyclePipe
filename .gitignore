@@ -1,0 +1,8 @@
+*
+
+!.gitignore
+
+# all directories w py inside keep
+!*.py
+!.*/
+!*.csv
