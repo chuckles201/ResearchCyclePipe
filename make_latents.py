@@ -2,7 +2,6 @@ import torch
 import PIL
 from dataloader import ImageDataset
 import os
-import pandas as pd
 from tqdm import tqdm
 
 ''' Storing Latents
@@ -18,7 +17,7 @@ def store_latents(dataset,path,model):
     # returns the path of the representations
     indxs = []
     latent_outputs = []
-    full_path = os.path.join(path,'latent_storage.csv')
+    full_path = os.path.join(path,'latent_storage.pt')
     
     # creating folder
     if not os.path.exists(path):
@@ -26,18 +25,20 @@ def store_latents(dataset,path,model):
     
     # if already there
     if os.path.exists(full_path):
-        print("Path already exists, skipping")
+        print("Mapping already exists, skipping latent-storage")
        
     # creating file with latents 
     else:
+        # take all images.
         ra = tqdm(range(len(dataset)))
         for i in ra:
-            # appending index and latent-outputs
-            indxs.append(i)
+            # appending latent-outputs
+            indxs.append(dataset.images[i])
             latent_outputs.append(model(dataset[i]))
             
-        series = pd.Series(latent_outputs,indxs)
-        series.to_csv(full_path)
+        save = [latent_outputs]
+        
+        torch.save(save,full_path)
 
 
 

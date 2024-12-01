@@ -16,20 +16,34 @@ from torchvision.io import read_image
 Here, we will load our raw images
 from the dataset, so we can eventually 
 make our latent-mappings.
+
+Only loading all if specified
 '''
-def raw_images_convert(dataset,dir,extension='jpg'):
+def raw_images_convert(dataset,dir,extension='jpg',num='all'):
     if os.path.exists(dir):
         print("Path exists, process skipped")
     else:
         os.makedirs(dir,exist_ok=True)
         
         # save all images
-        t = tqdm(enumerate(dataset))
-        for idx, (image,label) in t:
-            image_path = os.path.join(dir,f"{idx}.{extension}")
-            image.save(image_path)
+        if num == 'all':
+            t = tqdm(enumerate(dataset))
+            for idx, (image,label) in t:
+                image_path = os.path.join(dir,f"{idx}.{extension}")
+                image.save(image_path)
+                
+            print("Saved all ", len(dataset)," images in ", dir)
             
-        print("Saved all ", len(dataset)," images in ", dir)
+        else:
+            t = tqdm(enumerate(dataset))
+            final_num = 0
+            for idx, (image,label) in t:
+                if idx < num:
+                    image_path = os.path.join(dir,f"{idx}.{extension}")
+                    image.save(image_path)
+                    final_num=idx
+                    
+            print("Saved ", final_num," images in ", dir)
 
 
 
@@ -91,16 +105,16 @@ class ImageDataset(Dataset):
             image = self.transform(im)
             im.close()
         else:
-            
-            # delete-eventually.
-            print("READIGN CSV")
-            
             # typical latent-name
-            path_csv = os.path.join(self.latent_folder,'latent_storage.csv')
-            csv = pd.read_csv(path_csv)
+            full_path = os.path.join(self.latent_folder,'latent_storage.pt')
+            imgs_file = torch.load(full_path)
+            print(imgs_file)
+            # loading from correct index,
+            # need [0] for base-list
+            image = imgs_file[0][index]
             
             # index should match what was loaded!
-            image = csv[index]
+            
         return image
     
 
