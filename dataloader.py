@@ -65,7 +65,7 @@ def save_raw_labels(dataset,dir,num='all'):
             # all of our labels
             full_path = os.path.join(dir,'labels.csv')
             labels = [label for _, label in dataset]
-            df = pd.DataFrame(labels,columns="Labels")
+            df = pd.DataFrame(labels,columns=["Labels"])
             df.to_csv(full_path,index=False)
             print("saved at ",full_path)
         else: 
