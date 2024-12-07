@@ -9,9 +9,12 @@ In this file, we will simply make a function,
 that given a VAE, can run every single instance
 of the dataset, and save the representations in 
 a file.
+
+We specify a batch-size if we want to
+try to do more in parallel.
 '''
 
-def store_latents(dataset,path,model):
+def store_latents(dataset,path,model,batch_size=16):
     # takes entire dataset and maps to 
     # a specific path for latent images.
     # returns the path of the representations
@@ -30,11 +33,15 @@ def store_latents(dataset,path,model):
     # creating file with latents 
     else:
         # take all images.
-        ra = tqdm(range(len(dataset)))
+        ra = tqdm(range(len(dataset) // batch_size))
         for i in ra:
             # appending latent-outputs
             # passing-thru labels.
-            latent_outputs.append(model(dataset[i][0]))
+            index = i*batch_size
+            batch = torch.stack([dataset[index+i][0] for i in range(batch_size)],dim=0)
+            output = model(batch).chunk(batch_size,dim=0)
+            for i in range(batch_size):
+               latent_outputs.append(output[i][0])
             
         save = [latent_outputs]
         torch.save(save,full_path)
