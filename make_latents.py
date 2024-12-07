@@ -18,7 +18,7 @@ def store_latents(dataset,path,model,batch_size=16):
     # takes entire dataset and maps to 
     # a specific path for latent images.
     # returns the path of the representations
-    indxs = []
+    model.eval()# turn off training!
     latent_outputs = []
     full_path = os.path.join(path,'latent_storage.pt')
     
@@ -31,18 +31,19 @@ def store_latents(dataset,path,model,batch_size=16):
         print("Mapping already exists, skipping latent-storage")
        
     # creating file with latents 
-    else:
-        # take all images.
-        ra = tqdm(range(len(dataset) // batch_size))
-        for i in ra:
-            # appending latent-outputs
-            # passing-thru labels.
-            index = i*batch_size
-            batch = torch.stack([dataset[index+i][0] for i in range(batch_size)],dim=0)
-            output = model(batch).chunk(batch_size,dim=0)
-            for i in range(batch_size):
-               latent_outputs.append(output[i][0])
-            
-        save = [latent_outputs]
-        torch.save(save,full_path)
+    else: # NEED for cuda memory
+        with torch.no_grad(): 
+            # take all images.
+            ra = tqdm(range(len(dataset) // batch_size))
+            for i in ra:
+                # appending latent-outputs
+                # passing-thru labels.
+                index = i*batch_size
+                batch = torch.stack([dataset[index+i][0] for i in range(batch_size)],dim=0).to('cuda')
+                output = model(batch).chunk(batch_size,dim=0)
+                for i in range(batch_size):
+                    latent_outputs.append(output[i][0])
+                
+            save = [latent_outputs]
+            torch.save(save,full_path)
 
